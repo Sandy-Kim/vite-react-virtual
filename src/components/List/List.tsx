@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useState, useEffect, useRef } from "react"
+import { useRef } from "react"
+import { useQuery } from '@tanstack/react-query';
 import './List.css'
-import initialList from './list.json'
 
 type Post = {
   id: number;
@@ -10,6 +10,10 @@ type Post = {
 }
 
 export const List = () => {
+  const { data: posts } = useQuery<Post[]>({
+    queryKey: ['posts'],
+    queryFn: () => fetch('https://jsonplaceholder.typicode.com/posts').then((res) => res.json()),
+  });
   const parentRef = useRef(null);
   const rowVirtualizer = useVirtualizer({
     count: 100,
@@ -18,18 +22,7 @@ export const List = () => {
     overscan: 5,
   });
 
-  const [posts, setPosts] = useState<Post[]>([]);
-
-  // useEffect(() => {
-  //   console.log('effect');
-  //   fetch('https://jsonplaceholder.typicode.com/posts')
-  //     .then((response) => response.json())
-  //     .then((data) => setPosts(data))
-  // }, []);
-
-  useEffect(()=>{
-    setPosts(initialList);
-  },[])
+  if(!posts) return null;
 
   return (
     <div className="list-box">
@@ -40,8 +33,6 @@ export const List = () => {
           {rowVirtualizer.getVirtualItems().map((virtualItem) => {
             const post = posts[virtualItem.index];
             
-            if(!post) return null;
-
             return (
             <Link key={post.id} to={`/posts/${post.id}`}>
               <li
