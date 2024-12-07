@@ -39,6 +39,8 @@ export const List = () => {
       }}>
           {rowVirtualizer.getVirtualItems().map((virtualItem) => {
             const post = posts[virtualItem.index];
+            
+            if(!post) return null;
 
             return (
             <Link key={post.id} to={`/posts/${post.id}`}>
