@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useElementScrollRestoration } from "@tanstack/react-router";
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef } from "react"
 import { useQuery } from '@tanstack/react-query';
@@ -14,25 +14,46 @@ export const List = () => {
     queryKey: ['posts'],
     queryFn: () => fetch('https://jsonplaceholder.typicode.com/posts').then((res) => res.json()),
   });
-  const parentRef = useRef(null);
+
+  const scrollRestorationId = 'virtualizedContent';
+  
+  const scrollEntry = useElementScrollRestoration({
+    id: scrollRestorationId,
+  });
+
+  const parentRef = useRef<HTMLDivElement>(null);
   const rowVirtualizer = useVirtualizer({
-    count: 100,
+    count: posts?.length ?? 0,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 35,
     overscan: 5,
+    initialOffset: scrollEntry?.scrollY,
   });
 
   if(!posts) return null;
 
   return (
-    <div className="list-box">
-      <ul ref={parentRef} className="list" style={{
-        width: '100%',
-        position: 'relative',
-      }}>
+    <div className="box">
+      <ul>
+        {posts.map((post) => (
+          <Link key={post.id} to={`/posts/${post.id}`}>
+            <li>{post.title}</li>
+          </Link>
+        ))}
+      </ul>
+      <div 
+        ref={parentRef}
+        data-scroll-restoration-id={scrollRestorationId}
+        className="list-box">
+        <ul
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: `${rowVirtualizer.getTotalSize()}px`
+          }}>
           {rowVirtualizer.getVirtualItems().map((virtualItem) => {
             const post = posts[virtualItem.index];
-            
+
             return (
             <Link key={post.id} to={`/posts/${post.id}`}>
               <li
@@ -49,8 +70,9 @@ export const List = () => {
                 Row {virtualItem.index}
               </li>
             </Link>
-        )})}
-      </ul>
+            )})}
+        </ul>
+      </div>
     </div>
   )
 }

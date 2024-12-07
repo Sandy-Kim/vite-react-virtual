@@ -1,4 +1,9 @@
-.list {
-  height: 500px;
+.box {
+  display: flex;
+}
+
+.list-box {
+  width: 100%;
+  height: 100vh;
   overflow-y: auto;
 }
